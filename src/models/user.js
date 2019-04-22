@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken')
+const Task = require('./task')
 
 //Create and use userSchema for using advantage of middleware
 const userSchema = new mongoose.Schema({
@@ -42,8 +44,44 @@ const userSchema = new mongoose.Schema({
                 throw new Error("password should be at least 6 character");
             }
         }
-    }
+    },
+    tokens: [{
+        token: {
+            type: String,
+            required: true
+        }
+    }]  
+},
+{
+    timestamps: true
 });
+
+
+userSchema.virtual('tasks', {
+    ref: 'tasks',
+    localField: '_id',
+    foreignField: 'owner'
+});
+
+//userSchema.methods.getPublicProfile = function()  {
+userSchema.methods.toJSON = function()  {
+    const user = this
+    const userObject = user.toObject();
+
+    delete userObject.password;
+    delete userObject.tokens;
+
+    return userObject;
+}
+
+userSchema.methods.generateAuthToken = async function() {
+    const user = this
+    const token = jwt.sign( {_id: user._id.toString()}, 'ilearnnodejs', {expiresIn: '7 days'});
+
+    user.tokens = user.tokens.concat({  token })
+    await user.save();
+    return token;
+}
 
 userSchema.statics.findByCredentionals = async (email,password) => {
     const user = await User.findOne({email});
@@ -70,6 +108,15 @@ userSchema.pre('save',async function(next) {
         user.password = await bcrypt.hash(user.password,8);
     };
     
+
+    next();
+})
+
+userSchema.pre('remove',async function(next){
+    const user = this;
+
+    await Task.deleteMany({owner: user._id});
+
 
     next();
 })
