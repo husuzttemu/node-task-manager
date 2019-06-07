@@ -11,6 +11,8 @@ const taskRouter = require('./routers/task');
 
 const bcrypt = require('bcryptjs');
 
+const multer  = require('multer');
+
 /* //Middleware exmple
 app.use((req, res, next)=> {
     //console.log(req.method, req.path);
@@ -70,6 +72,14 @@ const main = async () => {
 }
 
 main();
+
+const  upload = multer({
+    dest: 'images'
+});
+
+app.post('/upload', upload.single('upload'),  (req, res) => {
+    res.send();
+  })
 
 const jwt = require('jsonwebtoken');
 

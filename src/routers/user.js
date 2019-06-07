@@ -5,6 +5,7 @@ const auth = require('../middleware/auth');
 
 const router = new express.Router();
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
 
 /*
 router.get('/test',(req,res) => {
@@ -55,6 +56,30 @@ router.post('/users/logout',auth, async (req,res) => {
     catch(error){
         res.status(500).send(error);
     }
+})
+
+const uploadAvatar = multer({
+    dest: 'avatars',
+    limits: {
+        fileSize: 1000000
+    },
+    fileFilter(req, file, cb) {
+        console.log(file.originalname);
+        if (!file.originalname.match(/\.(doc|docx)$/)) {
+            return cb(new Error('Please upload a word document!'));
+        }
+        cb(undefined,true);
+        //cb(null, false)
+        // To accept the file pass `true`, like so:
+        //cb(null, true)
+        // You can always pass an error if something goes wrong:
+        //cb(new Error('I don\'t have a clue!'))
+    }
+});
+
+
+router.post('/users/me/avatar', uploadAvatar.single('avatar'), async (req,res) => {
+    res.send();
 })
 
 router.post('/users/logoutall', auth, async (req,res) => {

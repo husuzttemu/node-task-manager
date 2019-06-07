@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken')
 const Task = require('./task')
 
+
 //Create and use userSchema for using advantage of middleware
 const userSchema = new mongoose.Schema({
     name: {
